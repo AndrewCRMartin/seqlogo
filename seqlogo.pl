@@ -4,8 +4,8 @@
 #   Program:    seqlogo
 #   File:       seqlogo.pl
 #   
-#   Version:    V1.0
-#   Date:       11.06.13
+#   Version:    V1.1
+#   Date:       14.06.13
 #   Function:   Generate a sequence logo
 #   
 #   Copyright:  (c) Dr. Andrew C. R. Martin, UCL, 2013
@@ -55,6 +55,7 @@
 #   Revision History:
 #   =================
 #   V1.0   11.06.13  Original
+#   V1.1   14.06.13  Added calculation and display of mean conservation
 #
 #*************************************************************************
 use strict;
@@ -212,10 +213,12 @@ sub CalcHeightMatrix
     my(@data) = @_;
     my @heights = ();
     my $ndata = scalar(@data);
+    my $meanConservation = 0.0;
     for(my $i=0; $i<$ndata; $i++)
     {
         my $line = $data[$i];
         my ($rseq, $count) = CalcEntropyConservation(%$line);
+        $meanConservation += $rseq;
 
         if(defined($::DEBUG))
         {
@@ -231,6 +234,10 @@ sub CalcHeightMatrix
         {
             $heights[$i]{$key} = $rseq * $$line{$key} / $count;
         }
+    }
+    if(defined($::v))
+    {
+        printf STDERR "Mean conservation: %.3f\n", ($meanConservation/$ndata);
     }
     return(@heights);
 }
@@ -478,9 +485,9 @@ __EOF
     {
         print <<__EOF;
 
-seqlogo V1.0 (c) 2013 Dr. Andrew C.R. Martin, UCL
+seqlogo V1.1 (c) 2013 Dr. Andrew C.R. Martin, UCL
 
-Usage: seqlogo [-png][-meme][-scale=scale][-size=fontsize][-x=x][-y=y]
+Usage: seqlogo [-png][-meme][-scale=scale][-size=fontsize][-x=x][-y=y][-v]
                [-font=f][-b-baseLineWidth][-t=templateFile][-DEBUG] > output
 
                -png   Output in PNG format instead of PostScript
@@ -494,6 +501,7 @@ Usage: seqlogo [-png][-meme][-scale=scale][-size=fontsize][-x=x][-y=y]
                -t     Postscript template file [Default: seqlogo_ps.tpl from directory 
                       specified by DATADIR environment variable if defined,
                       otherwise from $installDir]
+               -v     Verbose - print mean conservation
                -DEBUG Various debugging information
 
 A simple sequence logo program with minimal external dependencies. This will

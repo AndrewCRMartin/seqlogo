@@ -4,11 +4,11 @@
 #   Program:    seqlogo
 #   File:       seqlogo.pl
 #   
-#   Version:    V1.1
-#   Date:       14.06.13
+#   Version:    V1.2
+#   Date:       24.08.16
 #   Function:   Generate a sequence logo
 #   
-#   Copyright:  (c) Dr. Andrew C. R. Martin, UCL, 2013
+#   Copyright:  (c) Dr. Andrew C. R. Martin, UCL, 2013-2016
 #   Author:     Dr. Andrew C. R. Martin
 #   Address:    Institute of Structural and Molecular Biology
 #               Division of Biosciences
@@ -56,6 +56,8 @@
 #   =================
 #   V1.0   11.06.13  Original
 #   V1.1   14.06.13  Added calculation and display of mean conservation
+#   V1.2   24.08.16  Changed -scale to -charscale and added -scale for
+#                    PNM plots
 #
 #*************************************************************************
 use strict;
@@ -64,6 +66,23 @@ use strict;
 my $installDir = "$ENV{'HOME'}/scripts/seqlogo";
 
 #*************************************************************************
+# Defaults
+my %templateText = ();
+# Set the scale for stretching characters
+$::charscale = 5 if(!defined($::charscale));
+# Set scale for PNG plot
+$::scale = 0.25 if(!defined($::scale));
+# Set the font
+$templateText{'FONT'} = ((defined($::font))?$::font:"Helvetica");
+# Set the font size
+$templateText{'FONTSIZE'} = ((defined($::size))?$::size:30);
+# Set the x position
+$templateText{'XPOS'} = ((defined($::x))?$::x:36);
+# Set the y position
+$templateText{'YPOS'} = ((defined($::y))?$::y:36);
+# Set the baseline thickness
+$templateText{'BLWIDTH'} = ((defined($::b))?$::b:7);
+
 # Help
 UsageDie($::h) if(defined($::h));
 
@@ -83,20 +102,6 @@ if($templateFile eq "")
     die "You must specify the postscript template file";
 }
 my $template = ReadFile($templateFile);
-my %templateText = ();
-
-# Set the scale for stretching characters
-$::scale = 5 if(!defined($::scale));
-# Set the font
-$templateText{'FONT'} = ((defined($::font))?$::font:"Helvetica");
-# Set the font size
-$templateText{'FONTSIZE'} = ((defined($::size))?$::size:30);
-# Set the x position
-$templateText{'XPOS'} = ((defined($::x))?$::x:36);
-# Set the y position
-$templateText{'YPOS'} = ((defined($::y))?$::y:36);
-# Set the baseline thickness
-$templateText{'BLWIDTH'} = ((defined($::b))?$::b:7);
 
 
 # Read the PWM data file in Transfac or MEME format
@@ -114,7 +119,7 @@ else
 my @heights = CalcHeightMatrix(@data);
 
 # Convert this to postscript
-$templateText{'COMMANDS'} = BuildPostscript($::scale, @heights);
+$templateText{'COMMANDS'} = BuildPostscript($::charscale, @heights);
 
 # Insert the postscript into the template
 $template = ProcessTemplate($template, %templateText);
@@ -129,7 +134,7 @@ if(defined($::png))
     `(cd /tmp; pstopnm -dpi=300 $tfile)`;
     my $tfile2 = $tfile;
     $tfile2 =~ s/\.ps/001.ppm/;
-    my $png = `(cd /tmp; pnmcrop $tfile2 | pnmscale 0.25 | pnmtopng)`;
+    my $png = `(cd /tmp; pnmcrop $tfile2 | pnmscale $::scale | pnmtopng)`;
     unlink $tfile;
     unlink $tfile2;
     print $png;
@@ -485,24 +490,26 @@ __EOF
     {
         print <<__EOF;
 
-seqlogo V1.1 (c) 2013 Dr. Andrew C.R. Martin, UCL
+seqlogo V1.2 (c) 2013 Dr. Andrew C.R. Martin, UCL
 
-Usage: seqlogo [-png][-meme][-scale=scale][-size=fontsize][-x=x][-y=y][-v]
-               [-font=f][-b-baseLineWidth][-t=templateFile][-DEBUG] > output
+Usage: seqlogo [-png][-meme][-scale=scale][-charscale=scale][-size=fontsize]
+               [-x=x][-y=y][-v][-font=f][-b-baseLineWidth][-t=templateFile]
+               [-DEBUG] > output
 
-               -png   Output in PNG format instead of PostScript
-               -meme  Read MEME format files instead of Transfac
-               -scale Scaling of characters to set size of plot [$::scale]
-               -size  Font size [$templateText{'FONTSIZE'}]
-               -x     Specify x position of plot (PostScript) [$templateText{'XPOS'}]
-               -y     Specify y position of plot (PostScript) [$templateText{'YPOS'}]
-               -font  Postscript font [$templateText{'FONT'}]
-               -b     Specify thickness of line along the base [$templateText{'BLWIDTH'}]
-               -t     Postscript template file [Default: seqlogo_ps.tpl from directory 
-                      specified by DATADIR environment variable if defined,
-                      otherwise from $installDir]
-               -v     Verbose - print mean conservation
-               -DEBUG Various debugging information
+               -png       Output in PNG format instead of PostScript
+               -meme      Read MEME format files instead of Transfac
+               -charscale Scaling of characters to set size of plot [$::charscale]
+               -scale     Scaling of PNM plot
+               -size      Font size [$templateText{'FONTSIZE'}]
+               -x         Specify x position of plot (PostScript) [$templateText{'XPOS'}]
+               -y         Specify y position of plot (PostScript) [$templateText{'YPOS'}]
+               -font      Postscript font [$templateText{'FONT'}]
+               -b         Specify thickness of line along the base [$templateText{'BLWIDTH'}]
+               -t         Postscript template file [Default: seqlogo_ps.tpl from directory 
+                          specified by DATADIR environment variable if defined,
+                          otherwise from $installDir]
+               -v         Verbose - print mean conservation
+               -DEBUG     Various debugging information
 
 A simple sequence logo program with minimal external dependencies. This will
 generate PostScipt sequence logos on any system having Perl. PNG format requires

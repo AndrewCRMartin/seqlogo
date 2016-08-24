@@ -1,3 +1,12 @@
+%!PS-Adobe-3.0
+%%BoundingBox: none
+%%Pages: 0
+%%Creator: seqlogo
+%%Title: none
+%%CreationDate: none
+%%LanguageLevel: 2
+%%EndComments
+%%BeginProlog
 % Settings
 /[%FONT%] findfont [%FONTSIZE%] scalefont setfont
 /xpos [%XPOS%] def
@@ -116,6 +125,9 @@ xpos /xmax exch def
   { x width add /xmax exch def }
   if
 } bind def
+%%EndProlog
+%%Page: 1 1
+
 
 [% COMMANDS %]
 
@@ -129,3 +141,6 @@ xpos /xmax exch def
 
 showpage
 
+%%PageTrailer
+%%Trailer
+%%EOF
